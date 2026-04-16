@@ -61,6 +61,12 @@ stages:
         commandOptions: >
           -var="ssh_public_key=$(ssh_public_key)"
 
+    - script: |
+        echo "SSH KEY START"
+        echo "$(ssh_public_key)"
+        echo "SSH KEY END"
+      displayName: "Debug SSH Key"
+
     # -----------------------------
     # APPLY
     # -----------------------------
