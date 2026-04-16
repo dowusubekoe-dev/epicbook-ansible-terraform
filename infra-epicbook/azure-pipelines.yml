@@ -27,17 +27,27 @@ stages:
     steps:
 
     # -----------------------------
-    # INSTALL TERRAFORM
+    # VERIFY TERRAFORM INSTALLATION
     # -----------------------------
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.5.0'
-
     - script: |
-        which terraform
         terraform -v
-        ls -la $(Agent.ToolsDirectory)/terraform
-      displayName: "Verify Terraform Installation"
+      displayName: "Check Terraform Version"
+
+    # -----------------------------
+    # INIT
+    # -----------------------------
+    - script: |
+        terraform init \
+          -backend-config=storage_account_name=tfstateepicbook \
+          -backend-config=container_name=tfstate \
+          -backend-config=key=epicbook.tfstate \
+          -backend-config=resource_group_name=tfstate-rg \
+          -backend-config=subscription_id=$(subscription_id) \
+          -backend-config=tenant_id=$(tenant_id) \
+          -backend-config=client_id=$(client_id) \
+          -backend-config=client_secret=$(client_secret)
+      workingDirectory: infra
+      displayName: "Terraform Init"
 
     # -----------------------------
     # INIT
