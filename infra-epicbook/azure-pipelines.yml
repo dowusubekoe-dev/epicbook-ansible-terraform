@@ -14,9 +14,6 @@ variables:
 
 stages:
 
-# -----------------------------
-# STAGE 1: TERRAFORM DEPLOY
-# -----------------------------
 - stage: TerraformDeploy
   displayName: "Terraform Deploy"
 
@@ -27,51 +24,7 @@ stages:
     steps:
 
     # -----------------------------
-    # VERIFY TERRAFORM INSTALLATION
-    # -----------------------------
-    - script: |
-        terraform -v
-      displayName: "Check Terraform Version"
-
-    # -----------------------------
-    # INIT
-    # -----------------------------
-    - script: |
-        terraform init -reconfigure \
-        -backend-config=storage_account_name=tfstatedobepicbook \
-        -backend-config=container_name=tfstate \
-        -backend-config=key=epicbook.tfstate \
-        -backend-config=resource_group_name=tfstate-rg \
-      workingDirectory: infra-epicbook
-      displayName: "Terraform Init (Reconfigure Backend)"
-
-    - script: |
-        echo "Logging into Azure..."
-
-        az login --service-principal \
-          -u $ARM_CLIENT_ID \
-          -p $ARM_CLIENT_SECRET \
-          --tenant $ARM_TENANT_ID
-
-        az account set --subscription $ARM_SUBSCRIPTION_ID
-
-        echo "Login successful"
-      env:
-        ARM_CLIENT_ID: $(client_id)
-        ARM_CLIENT_SECRET: $(client_secret)
-        ARM_TENANT_ID: $(tenant_id)
-        ARM_SUBSCRIPTION_ID: $(subscription_id)
-      displayName: "Azure Login"
-
-    - script: |
-        rm -rf .terraform
-        rm -rf terraform.tfstate*
-        rm -rf .terraform.lock.hcl
-        ls -la .terraform || echo "no terraform cache"
-      displayName: "Clean Terraform Cache"
-
-    # -----------------------------
-    # INIT
+    # TERRAFORM INIT (ONLY SOURCE OF TRUTH)
     # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
@@ -84,15 +37,6 @@ stages:
         backendAzureRmStorageAccountName: 'tfstatedobepicbook'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'epicbook.tfstate'
-
-    - script: |
-        az login --service-principal \
-        -u $(client_id) \
-        -p $(client_secret) \
-        --tenant $(tenant_id)
-
-        az account set --subscription $(subscription_id)
-      displayName: "Azure CLI Login"
 
     # -----------------------------
     # VALIDATE
@@ -128,16 +72,20 @@ stages:
         commandOptions: '-auto-approve'
 
     # -----------------------------
-    # EXPORT OUTPUTS
+    # OUTPUTS
     # -----------------------------
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Output"
+      inputs:
+        provider: 'azurerm'
+        command: 'output'
+        workingDirectory: 'infra-epicbook'
+
     - script: |
         terraform output -json > tfoutputs.json
-      displayName: "Export Terraform Outputs"
       workingDirectory: infra-epicbook
+      displayName: "Export Terraform Outputs"
 
-    # -----------------------------
-    # PUBLISH OUTPUTS ARTIFACT
-    # -----------------------------
-    - publish: infra/tfoutputs.json
+    - publish: infra-epicbook/tfoutputs.json
       artifact: tfoutputs
       displayName: "Publish Terraform Outputs"
