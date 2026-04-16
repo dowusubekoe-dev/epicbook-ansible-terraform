@@ -62,10 +62,10 @@ stages:
           -var="ssh_public_key=$(ssh_public_key)"
 
     - script: |
-        echo "SSH KEY START"
-        echo "$(ssh_public_key)"
-        echo "SSH KEY END"
-      displayName: "Debug SSH Key"
+        echo "===== SSH KEY RAW START ====="
+        printf "%s\n" "$(ssh_public_key)"
+        echo "===== SSH KEY RAW END ====="
+      displayName: "Debug SSH Key Value"
 
     # -----------------------------
     # APPLY
