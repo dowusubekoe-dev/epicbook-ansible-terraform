@@ -52,13 +52,13 @@ stages:
       name: sshkey
       inputs:
         secureFile: 'azure_vm_key.pub'
+      displayName: "Download SSH Public Key"
 
     # OPTIONAL DEBUG (REMOVE AFTER FIX CONFIRMED)
     - script: |
-        echo "===== SSH KEY CONTENT ====="
+        echo "Secure file path: $(sshkey.secureFilePath)"
         cat $(sshkey.secureFilePath)
-        echo "==========================="
-      displayName: "DEBUG SSH KEY FILE"
+      displayName: "Verify SSH Key File"
 
     # -----------------------------
     # PLAN
