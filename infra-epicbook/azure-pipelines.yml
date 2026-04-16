@@ -33,6 +33,12 @@ stages:
       inputs:
         terraformVersion: '1.5.0'
 
+    - script: |
+        which terraform
+        terraform -v
+        ls -la $(Agent.ToolsDirectory)/terraform
+      displayName: "Verify Terraform Installation"
+
     # -----------------------------
     # INIT
     # -----------------------------
