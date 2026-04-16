@@ -4,9 +4,6 @@ trigger:
 pool:
   name: epicbook-deploy-agent
 
-# -----------------------------
-# VARIABLES (CORRECT FORMAT)
-# -----------------------------
 variables:
 - group: epicbook-secrets
 - name: TF_IN_AUTOMATION
@@ -24,7 +21,7 @@ stages:
     steps:
 
     # -----------------------------
-    # TERRAFORM INIT (ONLY SOURCE OF TRUTH)
+    # TERRAFORM INIT
     # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
@@ -49,6 +46,21 @@ stages:
         workingDirectory: 'infra-epicbook'
 
     # -----------------------------
+    # DOWNLOAD SSH PUBLIC KEY (SECURE FILE)
+    # -----------------------------
+    - task: DownloadSecureFile@1
+      name: sshkey
+      inputs:
+        secureFile: 'azure_vm_key.pub'
+
+    # OPTIONAL DEBUG (REMOVE AFTER FIX CONFIRMED)
+    - script: |
+        echo "===== SSH KEY CONTENT ====="
+        cat $(sshkey.secureFilePath)
+        echo "==========================="
+      displayName: "DEBUG SSH KEY FILE"
+
+    # -----------------------------
     # PLAN
     # -----------------------------
     - task: TerraformTaskV4@4
@@ -59,13 +71,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
-          -var="ssh_public_key=$(ssh_public_key)"
-
-    - script: |
-        echo "===== SSH KEY RAW START ====="
-        printf "%s\n" "$(ssh_public_key)"
-        echo "===== SSH KEY RAW END ====="
-      displayName: "Debug SSH Key Value"
+          -var="ssh_public_key=$(sshkey.secureFilePath)"
 
     # -----------------------------
     # APPLY
@@ -79,7 +85,7 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
           -auto-approve
-          -var="ssh_public_key=$(ssh_public_key)"'
+          -var="ssh_public_key=$(sshkey.secureFilePath)"
 
     # -----------------------------
     # OUTPUTS
