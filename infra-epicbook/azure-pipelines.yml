@@ -58,12 +58,8 @@ stages:
         command: 'plan'
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
-
-    - script: |
-        echo "Attempting safe unlock..."
-        terraform force-unlock -force fa90717f-dbdc-ef42-b323-d0d51da01183 || true
-      workingDirectory: infra-epicbook
-      displayName: "Force Unlock (Safe Fallback)"
+        commandOptions: >
+          -var="ssh_public_key=$(ssh_public_key)"
 
     # -----------------------------
     # APPLY
@@ -75,7 +71,9 @@ stages:
         command: 'apply'
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
-        commandOptions: '-auto-approve -var="ssh_public_key=$(ssh_public_key)"'
+        commandOptions: >
+          -auto-approve
+          -var="ssh_public_key=$(ssh_public_key)"'
 
     # -----------------------------
     # OUTPUTS
