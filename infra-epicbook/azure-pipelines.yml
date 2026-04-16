@@ -37,7 +37,7 @@ stages:
     # INIT
     # -----------------------------
     - script: |
-        terraform init \
+        terraform init -reconfigure \
           -backend-config=storage_account_name=tfstatedobepicbook \
           -backend-config=container_name=tfstate \
           -backend-config=key=epicbook.tfstate \
