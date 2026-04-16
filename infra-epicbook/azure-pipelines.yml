@@ -38,20 +38,19 @@ stages:
     # -----------------------------
     - script: |
         terraform init -reconfigure \
-          -backend-config=storage_account_name=tfstatedobepicbook \
-          -backend-config=container_name=tfstate \
-          -backend-config=key=epicbook.tfstate \
-          -backend-config=resource_group_name=tfstate-rg \
-          -backend-config=subscription_id=$(subscription_id) \
-          -backend-config=tenant_id=$(tenant_id) \
-          -backend-config=client_id=$(client_id) \
-          -backend-config=client_secret=$(client_secret)
+        -backend-config=storage_account_name=tfstateepicbook12345 \
+        -backend-config=container_name=tfstate \
+        -backend-config=key=epicbook.tfstate \
+        -backend-config=resource_group_name=tfstate-rg
+        -backend-config=subscription_id=$(subscription_id) \
+        -backend-config=tenant_id=$(tenant_id) \
+        -backend-config=client_id=$(client_id) \
+        -backend-config=client_secret=$(client_secret)
       workingDirectory: infra-epicbook
       displayName: "Terraform Init (Reconfigure Backend)"
 
     - script: |
         rm -rf .terraform
-        rm -rf ~/.terraform.d
       displayName: "Clean Terraform Cache"
 
     # -----------------------------
@@ -65,7 +64,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         backendServiceArm: 'epicbook-devops-sb'
         backendAzureRmResourceGroupName: 'tfstate-rg'
-        backendAzureRmStorageAccountName: 'tfstatedobepicbook'
+        backendAzureRmStorageAccountName: 'tfstateepicbook1234'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'epicbook.tfstate'
 
