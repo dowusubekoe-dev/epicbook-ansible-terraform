@@ -38,14 +38,16 @@ stages:
     # -----------------------------
     - script: |
         terraform init -reconfigure \
-        -backend-config=storage_account_name=tfstateepicbook12345 \
+        -backend-config=storage_account_name=tfstatedobepicbook \
         -backend-config=container_name=tfstate \
         -backend-config=key=epicbook.tfstate \
-        -backend-config=resource_group_name=tfstate-rg
-        -backend-config=subscription_id=$(subscription_id) \
-        -backend-config=tenant_id=$(tenant_id) \
-        -backend-config=client_id=$(client_id) \
-        -backend-config=client_secret=$(client_secret)
+        -backend-config=resource_group_name=tfstate-rg \
+
+      env:
+        ARM_SUBSCRIPTION_ID: $(subscription_id)
+        ARM_TENANT_ID: $(tenant_id)
+        ARM_CLIENT_ID: $(client_id)
+        ARM_CLIENT_SECRET: $(client_secret)
       workingDirectory: infra-epicbook
       displayName: "Terraform Init (Reconfigure Backend)"
 
