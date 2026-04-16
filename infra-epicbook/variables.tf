@@ -29,7 +29,7 @@ variable "db_subnet_cidr" {
 }
 
 variable "admin_username" {
-  description = "VM admin username"
+  description = "Admin username for all VMs"
   type        = string
   default     = "azureuser"
 }

@@ -4,13 +4,12 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
   resource_group_name = var.rg_name
   size                = "Standard_B1s"
 
-  admin_username = "azureuser"
-
+  admin_username      = var.admin_username
   network_interface_ids = [azurerm_network_interface.app_nic.id]
 
   admin_ssh_key {
-    username   = "azureuser"
-    public_key = file(var.ssh_public_key)
+    username   = var.admin_username
+    public_key = var.ssh_public_key
   }
 
   os_disk {
@@ -32,13 +31,12 @@ resource "azurerm_linux_virtual_machine" "db_vm" {
   resource_group_name = var.rg_name
   size                = "Standard_B1s"
 
-  admin_username = "azureuser"
-
+  admin_username      = var.admin_username
   network_interface_ids = [azurerm_network_interface.db_nic.id]
 
   admin_ssh_key {
-    username   = "azureuser"
-    public_key = file(var.ssh_public_key)
+    username   = var.admin_username
+    public_key = var.ssh_public_key
   }
 
   os_disk {

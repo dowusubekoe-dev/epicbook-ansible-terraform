@@ -1,51 +1,44 @@
 # App NSG
 resource "azurerm_network_security_group" "app_nsg" {
   name                = "app-nsg"
-  location            = var.location
-  resource_group_name = var.rg_name
-
-  security_rule {
-    name                       = "allow-ssh"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix  = "*"
-  }
-
-  security_rule {
-    name                       = "allow-http"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix  = "*"
-  }
-
-  security_rule {
-    name                       = "allow-node"
-    priority                   = 120
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3000"
-    source_address_prefix      = "*"
-    destination_address_prefix  = "*"
-  }
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 }
+
+  resource "azurerm_network_security_rule" "allow_http" {
+  name                        = "allow-http"
+  priority                    = 200
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.app_nsg.name
+}
+
+  resource "azurerm_network_security_rule" "allow_node" {
+  name                        = "allow-node"
+  priority                    = 300
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3000"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.app_nsg.name
+}
+
 
 # DB NSG
 resource "azurerm_network_security_group" "db_nsg" {
   name                = "db-nsg"
-  location            = var.location
-  resource_group_name = var.rg_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
   security_rule {
     name                       = "allow-mysql-from-app"
@@ -56,18 +49,6 @@ resource "azurerm_network_security_group" "db_nsg" {
     source_port_range          = "*"
     destination_port_range     = "3306"
     source_address_prefix      = "10.0.1.0/24"
-    destination_address_prefix  = "*"
-  }
-
-  security_rule {
-    name                       = "allow-ssh"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
     destination_address_prefix  = "*"
   }
 }
