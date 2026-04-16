@@ -46,7 +46,7 @@ stages:
           -backend-config=tenant_id=$(tenant_id) \
           -backend-config=client_id=$(client_id) \
           -backend-config=client_secret=$(client_secret)
-      workingDirectory: infra
+      workingDirectory: infra-epicbook
       displayName: "Terraform Init"
 
     # -----------------------------
@@ -57,7 +57,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: 'infra'
+        workingDirectory: 'infra-epicbook'
         backendServiceArm: 'epicbook-devops-sb'
         backendAzureRmResourceGroupName: 'tfstate-rg'
         backendAzureRmStorageAccountName: 'tfstateepicbook'
@@ -72,7 +72,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'validate'
-        workingDirectory: 'infra'
+        workingDirectory: 'infra-epicbook'
 
     # -----------------------------
     # PLAN
@@ -82,7 +82,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'plan'
-        workingDirectory: 'infra'
+        workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
 
     # -----------------------------
@@ -93,7 +93,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'apply'
-        workingDirectory: 'infra'
+        workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: '-auto-approve'
 
@@ -103,7 +103,7 @@ stages:
     - script: |
         terraform output -json > tfoutputs.json
       displayName: "Export Terraform Outputs"
-      workingDirectory: infra
+      workingDirectory: infra-epicbook
 
     # -----------------------------
     # PUBLISH OUTPUTS ARTIFACT
