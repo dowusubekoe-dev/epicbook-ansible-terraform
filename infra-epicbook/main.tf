@@ -1,4 +1,4 @@
 resource "azurerm_resource_group" "rg" {
   name     = "epicbook-rg"
-  location = "SouthAfricaNorth"
+  location = "East US"
 }
