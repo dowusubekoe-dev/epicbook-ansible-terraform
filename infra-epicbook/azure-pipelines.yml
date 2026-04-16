@@ -46,12 +46,16 @@ stages:
       displayName: "Terraform Init (Reconfigure Backend)"
 
     - script: |
+        echo "Logging into Azure..."
+
         az login --service-principal \
           -u $ARM_CLIENT_ID \
           -p $ARM_CLIENT_SECRET \
           --tenant $ARM_TENANT_ID
 
         az account set --subscription $ARM_SUBSCRIPTION_ID
+
+        echo "Login successful"
       env:
         ARM_CLIENT_ID: $(client_id)
         ARM_CLIENT_SECRET: $(client_secret)
