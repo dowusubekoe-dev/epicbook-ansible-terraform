@@ -60,7 +60,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         backendServiceArm: 'epicbook-devops-sb'
         backendAzureRmResourceGroupName: 'tfstate-rg'
-        backendAzureRmStorageAccountName: 'tfstateepicbook'
+        backendAzureRmStorageAccountName: 'tfstatedobepicbook'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'epicbook.tfstate'
 
