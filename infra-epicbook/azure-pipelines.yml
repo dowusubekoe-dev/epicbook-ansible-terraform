@@ -65,6 +65,7 @@ stages:
 
     - script: |
         rm -rf .terraform
+        rm -rf terraform.tfstate*
       displayName: "Clean Terraform Cache"
 
     # -----------------------------
