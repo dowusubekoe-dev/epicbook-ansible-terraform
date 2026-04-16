@@ -43,6 +43,10 @@ stages:
         command: 'init'
         workingDirectory: 'infra'
         backendServiceArm: 'epicbook-devops-sb'
+        backendAzureRmResourceGroupName: 'tfstate-rg'
+        backendAzureRmStorageAccountName: 'tfstateepicbook'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'epicbook.tfstate'
 
     # -----------------------------
     # VALIDATE
