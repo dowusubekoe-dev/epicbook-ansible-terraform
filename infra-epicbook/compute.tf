@@ -2,7 +2,7 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
   name                = "epicbook-app-vm"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  size                = "Standard_B2ts_v2"
+  size                = "Standard_D2s_v5"
 
   admin_username = var.admin_username
 
@@ -33,7 +33,7 @@ resource "azurerm_linux_virtual_machine" "db_vm" {
   name                = "epicbook-db-vm"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  size                = "Standard_B2ts_v2"
+  size                = "Standard_D2s_v5"
 
   admin_username = var.admin_username
 
