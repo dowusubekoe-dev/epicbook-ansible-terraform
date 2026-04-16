@@ -49,6 +49,11 @@ stages:
       workingDirectory: infra-epicbook
       displayName: "Terraform Init (Reconfigure Backend)"
 
+    - script: |
+        rm -rf .terraform
+        rm -rf ~/.terraform.d
+      displayName: "Clean Terraform Cache"
+
     # -----------------------------
     # INIT
     # -----------------------------
