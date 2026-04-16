@@ -60,8 +60,10 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
 
     - script: |
+        echo "Attempting safe unlock..."
         terraform force-unlock -force fa90717f-dbdc-ef42-b323-d0d51da01183 || true
-      displayName: "Force Unlock (Safe)"
+      workingDirectory: infra-epicbook
+      displayName: "Force Unlock (Safe Fallback)"
 
     # -----------------------------
     # APPLY
