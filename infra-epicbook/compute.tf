@@ -1,11 +1,14 @@
 resource "azurerm_linux_virtual_machine" "app_vm" {
   name                = "epicbook-app-vm"
-  location            = var.location
-  resource_group_name = var.rg_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   size                = "Standard_B1s"
 
-  admin_username      = var.admin_username
-  network_interface_ids = [azurerm_network_interface.app_nic.id]
+  admin_username = var.admin_username
+
+  network_interface_ids = [
+    azurerm_network_interface.app_nic.id
+  ]
 
   admin_ssh_key {
     username   = var.admin_username
@@ -17,9 +20,10 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
     storage_account_type = "Standard_LRS"
   }
 
+  # FIXED IMAGE (Azure-compatible)
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
@@ -27,12 +31,15 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
 
 resource "azurerm_linux_virtual_machine" "db_vm" {
   name                = "epicbook-db-vm"
-  location            = var.location
-  resource_group_name = var.rg_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   size                = "Standard_B1s"
 
-  admin_username      = var.admin_username
-  network_interface_ids = [azurerm_network_interface.db_nic.id]
+  admin_username = var.admin_username
+
+  network_interface_ids = [
+    azurerm_network_interface.db_nic.id
+  ]
 
   admin_ssh_key {
     username   = var.admin_username
@@ -44,9 +51,10 @@ resource "azurerm_linux_virtual_machine" "db_vm" {
     storage_account_type = "Standard_LRS"
   }
 
+  # FIXED IMAGE (same as app for consistency)
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
