@@ -47,7 +47,7 @@ stages:
           -backend-config=client_id=$(client_id) \
           -backend-config=client_secret=$(client_secret)
       workingDirectory: infra-epicbook
-      displayName: "Terraform Init"
+      displayName: "Terraform Init with SPN"
 
     # -----------------------------
     # INIT
@@ -63,6 +63,15 @@ stages:
         backendAzureRmStorageAccountName: 'tfstateepicbook'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'epicbook.tfstate'
+
+    - script: |
+        az login --service-principal \
+        -u $(client_id) \
+        -p $(client_secret) \
+        --tenant $(tenant_id)
+
+        az account set --subscription $(subscription_id)
+      displayName: "Azure CLI Login"
 
     # -----------------------------
     # VALIDATE
