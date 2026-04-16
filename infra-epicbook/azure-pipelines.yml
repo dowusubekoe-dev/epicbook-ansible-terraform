@@ -47,7 +47,7 @@ stages:
           -backend-config=client_id=$(client_id) \
           -backend-config=client_secret=$(client_secret)
       workingDirectory: infra-epicbook
-      displayName: "Terraform Init with SPN"
+      displayName: "Terraform Init (Reconfigure Backend)"
 
     # -----------------------------
     # INIT
