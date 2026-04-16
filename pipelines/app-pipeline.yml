@@ -1,0 +1,98 @@
+trigger:
+- main
+
+pool:
+  name: epicbook-deploy-agent
+
+variables:
+- group: epicbook-secrets
+
+stages:
+
+# =====================================================
+# STAGE 1: DOWNLOAD TERRAFORM OUTPUTS FROM INFRA PIPELINE
+# =====================================================
+- stage: FetchInfraOutputs
+  displayName: "Fetch Terraform Outputs"
+  jobs:
+  - job: fetch
+    steps:
+
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download Terraform Outputs"
+      inputs:
+        buildType: 'specific'
+        project: $(System.TeamProject)
+        pipeline: 'infra-epicbook.git'
+        artifact: 'tfoutputs'
+        path: '$(Pipeline.Workspace)/tfoutputs'
+
+    - script: |
+        cat $(Pipeline.Workspace)/tfoutputs/tfoutputs.json
+      displayName: "Verify Terraform Outputs"
+
+# =====================================================
+# STAGE 2: GENERATE INVENTORY
+# =====================================================
+- stage: PrepareInventory
+  displayName: "Generate Ansible Inventory"
+  dependsOn: FetchInfraOutputs
+  jobs:
+  - job: inventory
+    steps:
+
+    - script: |
+        python3 scripts/generate_inventory.py \
+          $(Pipeline.Workspace)/tfoutputs/tfoutputs.json \
+          > ansible/inventory.ini
+      displayName: "Generate inventory from Terraform outputs"
+
+    - script: |
+        cat ansible/inventory.ini
+      displayName: "Show Inventory"
+
+# =====================================================
+# STAGE 3: SETUP SSH KEY + RUN ANSIBLE
+# =====================================================
+- stage: DeployApp
+  displayName: "Deploy EpicBook with Ansible"
+  dependsOn: PrepareInventory
+  jobs:
+  - job: ansible
+    steps:
+
+    # -----------------------------
+    # DOWNLOAD SSH KEY (SECURE FILE)
+    # -----------------------------
+    - task: DownloadSecureFile@1
+      name: sshkey
+      inputs:
+        secureFile: id_rsa   # <-- must match Secure Files name
+
+    - script: |
+        chmod 600 $(sshkey.secureFilePath)
+      displayName: "Set SSH Key Permissions"
+
+    # -----------------------------
+    # RUN ANSIBLE PLAYBOOK
+    # -----------------------------
+    - script: |
+        ansible-playbook -i ansible/inventory.ini ansible/site.yml \
+          --private-key $(sshkey.secureFilePath) \
+          --extra-vars "db_user=$(db_user) db_password=$(db_password) db_name=$(db_name)"
+      displayName: "Run Ansible Deployment"
+
+# =====================================================
+# STAGE 4: VALIDATION (HEALTH CHECK)
+# =====================================================
+- stage: ValidateDeployment
+  displayName: "Validate EpicBook Deployment"
+  dependsOn: DeployApp
+  jobs:
+  - job: validate
+    steps:
+
+    - script: |
+        echo "Testing application endpoint..."
+        curl -I http://$(app_public_ip)
+      displayName: "Health Check (HTTP 80)"
