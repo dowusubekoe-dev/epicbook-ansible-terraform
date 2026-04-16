@@ -66,6 +66,8 @@ stages:
     - script: |
         rm -rf .terraform
         rm -rf terraform.tfstate*
+        rm -rf .terraform.lock.hcl
+        ls -la .terraform || echo "no terraform cache"
       displayName: "Clean Terraform Cache"
 
     # -----------------------------
@@ -79,7 +81,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         backendServiceArm: 'epicbook-devops-sb'
         backendAzureRmResourceGroupName: 'tfstate-rg'
-        backendAzureRmStorageAccountName: 'tfstateepicbook1234'
+        backendAzureRmStorageAccountName: 'tfstatedobepicbook'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'epicbook.tfstate'
 
