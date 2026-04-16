@@ -1,0 +1,93 @@
+trigger:
+- main
+
+pool:
+  name: epicbook-deploy-agent
+
+# -----------------------------
+# VARIABLES (CORRECT FORMAT)
+# -----------------------------
+variables:
+- group: epicbook-secrets
+- name: TF_IN_AUTOMATION
+  value: true
+
+stages:
+
+# -----------------------------
+# STAGE 1: TERRAFORM DEPLOY
+# -----------------------------
+- stage: TerraformDeploy
+  displayName: "Terraform Deploy"
+
+  jobs:
+  - job: terraform
+    displayName: "Terraform Job"
+
+    steps:
+
+    # -----------------------------
+    # INSTALL TERRAFORM
+    # -----------------------------
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.5.0'
+
+    # -----------------------------
+    # INIT
+    # -----------------------------
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Init"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: 'infra'
+        backendServiceArm: 'epicbook-devops-sb'
+
+    # -----------------------------
+    # VALIDATE
+    # -----------------------------
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Validate"
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: 'infra'
+
+    # -----------------------------
+    # PLAN
+    # -----------------------------
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Plan"
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: 'infra'
+        environmentServiceNameAzureRM: 'epicbook-devops-sb'
+
+    # -----------------------------
+    # APPLY
+    # -----------------------------
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Apply"
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: 'infra'
+        environmentServiceNameAzureRM: 'epicbook-devops-sb'
+        commandOptions: '-auto-approve'
+
+    # -----------------------------
+    # EXPORT OUTPUTS
+    # -----------------------------
+    - script: |
+        terraform output -json > tfoutputs.json
+      displayName: "Export Terraform Outputs"
+      workingDirectory: infra
+
+    # -----------------------------
+    # PUBLISH OUTPUTS ARTIFACT
+    # -----------------------------
+    - publish: infra/tfoutputs.json
+      artifact: tfoutputs
+      displayName: "Publish Terraform Outputs"

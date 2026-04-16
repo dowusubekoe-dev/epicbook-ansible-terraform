@@ -1,0 +1,38 @@
+- name: Install MySQL server
+  apt:
+    name: mysql-server
+    state: present
+    update_cache: yes
+
+- name: Start and enable MySQL
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Create bookstore database
+  mysql_db:
+    name: bookstore
+    state: present
+
+- name: Create MySQL user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "bookstore.*:ALL"
+    host: "%"
+    state: present
+
+- name: Copy SQL files
+  copy:
+    src: ../../../../db/
+    dest: /tmp/db/
+
+- name: Import schema
+  shell: mysql -u root bookstore < /tmp/db/BuyTheBook_Schema.sql
+
+- name: Import author seed
+  shell: mysql -u root bookstore < /tmp/db/author_seed.sql
+
+- name: Import books seed
+  shell: mysql -u root bookstore < /tmp/db/books_seed.sql

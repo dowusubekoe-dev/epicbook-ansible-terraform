@@ -1,0 +1,5 @@
+app_port: 3000
+db_host: "{{ hostvars['db']['ansible_host'] }}"
+db_name: bookstore
+db_user: epicuser
+db_password: GuestStrong2026!

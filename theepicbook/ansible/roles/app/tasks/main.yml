@@ -1,0 +1,28 @@
+- name: Install Node.js dependencies
+  shell: |
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    apt install -y nodejs
+
+- name: Install PM2 globally
+  npm:
+    name: pm2
+    global: yes
+
+- name: Clone EpicBook repo
+  git:
+    repo: https://github.com/pravinmishraaws/theepicbook.git
+    dest: /var/www/epicbook
+
+- name: Install npm dependencies
+  npm:
+    path: /var/www/epicbook
+
+- name: Configure DB connection
+  template:
+    src: db.js.j2
+    dest: /var/www/epicbook/config/db.js
+
+- name: Start application with PM2
+  shell: pm2 start server.js --name epicbook
+  args:
+    chdir: /var/www/epicbook
