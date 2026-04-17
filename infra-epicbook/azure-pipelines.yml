@@ -29,12 +29,23 @@ stages:
     # 1. GENERATE TFVARS
     # ----------------------------
     - script: |
-        echo "Secure file path: $(sshkey.secureFilePath)"
-        SSH_KEY=$(cat "$(sshkey.secureFilePath)")
+        set -e
+        KEY_PATH="$(sshkey.secureFilePath)"
+        echo "Using key file: $KEY_PATH"
+        if [ ! -s "$KEY_PATH" ]; then
+          echo "ERROR: SSH key file is missing or empty"
+        exit 1
+        fi
+        SSH_KEY=$(cat "$KEY_PATH")
+        if [ -z "$SSH_KEY" ]; then
+          echo "ERROR: SSH key is empty"
+          exit 1
+        fi
         printf 'ssh_public_key="%s"\n' "$SSH_KEY" > pipeline.tfvars
+        echo "Generated tfvars:"
         cat pipeline.tfvars
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
       displayName: "Generate tfvars"
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
 
     # ----------------------------
     # 2. TERRAFORM INIT
