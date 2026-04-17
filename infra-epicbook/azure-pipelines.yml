@@ -50,23 +50,18 @@ stages:
     # -----------------------------
     - task: DownloadSecureFile@1
       name: sshkey
+      displayName: "Download SSH Public Key"
       inputs:
         secureFile: 'azure_vm_key.pub'
-      displayName: "Download SSH Public Key"
 
-    # OPTIONAL DEBUG (REMOVE AFTER FIX CONFIRMED)
-    - script: |
-        echo "Raw key inspection:"
-        printf "%s" "$(ssh_public_key)" | tr -d '\r' | cat -A
-      displayName: "Debug SSH Key"
-
-    - task: Bash@3
+    # -----------------------------
+    # NORMALIZE SSH KEY (CRITICAL FIX)
+    # -----------------------------
+    - bash: |
+        echo "Normalizing SSH key..."
+        CLEAN_KEY=$(tr -d '\r\n' < "$(sshkey.secureFilePath)")
+        echo "##vso[task.setvariable variable=ssh_public_key]$CLEAN_KEY"
       displayName: "Normalize SSH Key"
-      inputs:
-        targetType: inline
-        script: |
-          CLEAN_KEY=$(echo "$(ssh_public_key)" | tr -d '\r')
-          echo "##vso[task.setvariable variable=ssh_public_key]$CLEAN_KEY"
 
     # -----------------------------
     # PLAN
@@ -79,7 +74,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
-          -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
+          -var="ssh_public_key=$(ssh_public_key)"
 
     # -----------------------------
     # APPLY
@@ -93,7 +88,7 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
           -auto-approve
-            -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
+          -var="ssh_public_key=$(ssh_public_key)"
 
     # -----------------------------
     # OUTPUTS
