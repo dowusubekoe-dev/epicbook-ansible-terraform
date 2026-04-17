@@ -71,7 +71,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
-          -var="ssh_public_key=$(sshkey.secureFilePath)"
+          -var="ssh_public_key=$(ssh_public_key)"
 
     # -----------------------------
     # APPLY
@@ -85,7 +85,7 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
           -auto-approve
-          -var="ssh_public_key=$(sshkey.secureFilePath)"
+            -var="ssh_public_key=$(ssh_public_key)"
 
     # -----------------------------
     # OUTPUTS
