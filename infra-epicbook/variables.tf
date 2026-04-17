@@ -35,18 +35,18 @@ variable "ssh_public_key" {
 
 variable "vm_size" {
   type    = string
-  default = "Standard_B2ts_v2"
+  default = "Standard_B2ats_v2"
 }
 
 variable "location" {
   type    = string
-  default = "northeurope"
+  default = "westeurope"
 
   validation {
     condition = contains([
-      "northeurope"
+      "westeurope"
     ], var.location)
 
-    error_message = "Only northeurope is allowed in this environment."
+    error_message = "Only westeurope is allowed in this environment."
   }
 }
