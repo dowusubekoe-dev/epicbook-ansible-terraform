@@ -56,9 +56,17 @@ stages:
 
     # OPTIONAL DEBUG (REMOVE AFTER FIX CONFIRMED)
     - script: |
-        echo "Secure file path: $(sshkey.secureFilePath)"
-        cat $(sshkey.secureFilePath)
-      displayName: "Verify SSH Key File"
+        echo "Raw key inspection:"
+        printf "%s" "$(ssh_public_key)" | tr -d '\r' | cat -A
+      displayName: "Debug SSH Key"
+
+    - task: Bash@3
+      displayName: "Normalize SSH Key"
+      inputs:
+        targetType: inline
+        script: |
+          CLEAN_KEY=$(echo "$(ssh_public_key)" | tr -d '\r')
+          echo "##vso[task.setvariable variable=ssh_public_key]$CLEAN_KEY"
 
     # -----------------------------
     # PLAN
@@ -71,7 +79,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
-          -var="ssh_public_key=$(ssh_public_key)"
+          -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
 
     # -----------------------------
     # APPLY
@@ -85,7 +93,7 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
           -auto-approve
-            -var="ssh_public_key=$(ssh_public_key)"
+            -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
 
     # -----------------------------
     # OUTPUTS
