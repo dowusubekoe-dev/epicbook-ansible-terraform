@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: Pool Agent VM
+  name: epicbook-deploy-agent
 
 variables:
   TF_IN_AUTOMATION: true
