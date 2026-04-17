@@ -43,5 +43,4 @@ variable "admin_username" {
 variable "ssh_public_key" {
   description = "Path to SSH public key"
   type        = string
-  default     = "~/.ssh/azure_vm_key.pub"
 }
