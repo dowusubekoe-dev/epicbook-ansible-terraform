@@ -1,9 +1,3 @@
-variable "location" {
-  description = "Azure region"
-  type        = string
-  default     = "australiacentral"
-}
-
 variable "rg_name" {
   description = "Resource group name"
   type        = string
@@ -35,7 +29,6 @@ variable "admin_username" {
 }
 
 variable "ssh_public_key" {
-  description = "Path to SSH public key"
   type        = string
 }
 
@@ -51,5 +44,17 @@ validation {
     ], var.vm_size)
 
     error_message = "Only B-series v2 sizes are allowed in this environment."
+  }
+}
+
+variable "location" {
+  type = string
+
+  validation {
+    condition = contains([
+      "westeurope"
+    ], var.location)
+
+    error_message = "Only westeurope is allowed in this environment."
   }
 }

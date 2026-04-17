@@ -55,10 +55,9 @@ stages:
       displayName: "Download SSH Public Key"
 
     # Normalize SSH key into pipeline variable
-    - bash: |
-        KEY=$(cat $(sshkey.secureFilePath) | tr -d '\r' | tr -d '\n')
-        echo "##vso[task.setvariable variable=ssh_public_key]$KEY"
-      displayName: "Load SSH Key into Variable"
+    - script: |
+        SSH_KEY=$(cat $(sshkey.secureFilePath))
+        echo "##vso[task.setvariable variable=ssh_public_key]$SSH_KEY"
 
     # -----------------------------
     # PLAN
