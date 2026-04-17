@@ -1,6 +1,6 @@
 resource "azurerm_virtual_network" "vnet" {
   name                = "epicbook-vnet"
-  location            = azurerm_resource_group.rg.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = ["10.0.0.0/16"]
 }
@@ -21,7 +21,7 @@ resource "azurerm_subnet" "db_subnet" {
 
 resource "azurerm_network_interface" "app_nic" {
   name                = "app-nic"
-  location            = azurerm_resource_group.rg.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
@@ -34,7 +34,7 @@ resource "azurerm_network_interface" "app_nic" {
 
 resource "azurerm_network_interface" "db_nic" {
   name                = "db-nic"
-  location            = azurerm_resource_group.rg.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
@@ -46,7 +46,7 @@ resource "azurerm_network_interface" "db_nic" {
 
 resource "azurerm_public_ip" "app" {
   name                = "app-public-ip"
-  location            = azurerm_resource_group.rg.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
 }

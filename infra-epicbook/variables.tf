@@ -1,7 +1,13 @@
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "westus2"
+  default     = "australiacentral"
+}
+
+variable "vm_size" {
+  description = "SKU of VM"
+  type = string
+  default = "Standard_D2ads_v7"
 }
 
 variable "rg_name" {

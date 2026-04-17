@@ -1,8 +1,8 @@
 resource "azurerm_linux_virtual_machine" "app_vm" {
   name                = "epicbook-app-vm"
-  location            = azurerm_resource_group.rg.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  size                = "Standard_DS1_v2"
+  size                = var.vm_size
 
   admin_username = var.admin_username
 
@@ -12,7 +12,7 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file(var.ssh_public_key)
+    public_key = var.ssh_public_key
   }
 
   os_disk {
@@ -24,16 +24,16 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    sku       = "24_04-lts"
     version   = "latest"
   }
 }
 
 resource "azurerm_linux_virtual_machine" "db_vm" {
   name                = "epicbook-db-vm"
-  location            = azurerm_resource_group.rg.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  size                = "Standard_DS1_v2"
+  size                = var.vm_size
 
   admin_username = var.admin_username
 
@@ -43,7 +43,7 @@ resource "azurerm_linux_virtual_machine" "db_vm" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file(var.ssh_public_key)
+    public_key = var.ssh_public_key
   }
 
   os_disk {
@@ -55,7 +55,7 @@ resource "azurerm_linux_virtual_machine" "db_vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    sku       = "24_04-lts"
     version   = "latest"
   }
 }
