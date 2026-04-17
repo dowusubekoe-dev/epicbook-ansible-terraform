@@ -29,12 +29,10 @@ stages:
     # 1. GENERATE TFVARS
     # ----------------------------
     - script: |
-        SSH_KEY=$(cat $(sshkey.secureFilePath))
-
+        echo "Secure file path: $(sshkey.secureFilePath)"
+        SSH_KEY=$(cat "$(sshkey.secureFilePath)")
         printf 'ssh_public_key="%s"\n' "$SSH_KEY" > pipeline.tfvars
-
         cat pipeline.tfvars
-
       workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
       displayName: "Generate tfvars"
 
