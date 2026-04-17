@@ -7,7 +7,7 @@ variable "location" {
 variable "vm_size" {
   description = "SKU of VM"
   type = string
-  default = "Standard_B1s"
+  default = "Standard_B2s_v2"
 }
 
 variable "rg_name" {
@@ -43,4 +43,19 @@ variable "admin_username" {
 variable "ssh_public_key" {
   description = "Path to SSH public key"
   type        = string
+}
+
+variable "vm_size" {
+  type    = string
+  default = "Standard_B2s_v2"
+
+validation {
+    condition = contains([
+      "Standard_B2ls_v2",
+      "Standard_B2s_v2",
+      "Standard_B2ts_v2"
+    ], var.vm_size)
+
+    error_message = "Only B-series v2 sizes are allowed in this environment."
+  }
 }
