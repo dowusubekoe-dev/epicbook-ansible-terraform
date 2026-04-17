@@ -21,6 +21,26 @@ stages:
     steps:
 
     # -----------------------------
+    # DOWNLOAD SSH KEY
+    # -----------------------------
+    - task: DownloadSecureFile@1
+      name: sshkey
+      inputs:
+        secureFile: 'azure_vm_key.pub'
+      displayName: "Download SSH Public Key"
+
+    # -----------------------------
+    # EXPORT VARIABLES (CRITICAL)
+    # -----------------------------
+    - task: Bash@3
+      displayName: "Set Terraform Variables"
+      inputs:
+        targetType: inline
+        script: |
+          echo "##vso[task.setvariable variable=TF_VAR_ssh_public_key]$(cat $(sshkey.secureFilePath))"
+          echo "##vso[task.setvariable variable=TF_VAR_location]westeurope"
+
+    # -----------------------------
     # INIT
     # -----------------------------
     - task: TerraformTaskV4@4
@@ -46,20 +66,6 @@ stages:
         workingDirectory: 'infra-epicbook'
 
     # -----------------------------
-    # LOAD SSH KEY (SECURE FILE)
-    # -----------------------------
-    - task: DownloadSecureFile@1
-      name: sshkey
-      inputs:
-        secureFile: 'azure_vm_key.pub'
-      displayName: "Download SSH Public Key"
-
-    # Normalize SSH key into pipeline variable
-    - script: |
-        export TF_VAR_ssh_public_key="$(cat $(sshkey.secureFilePath))"
-        terraform plan
-
-    # -----------------------------
     # PLAN
     # -----------------------------
     - task: TerraformTaskV4@4
@@ -69,8 +75,6 @@ stages:
         command: 'plan'
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
-        commandOptions: >
-          -var="ssh_public_key=$(ssh_public_key)"
 
     # -----------------------------
     # APPLY
@@ -82,9 +86,7 @@ stages:
         command: 'apply'
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
-        commandOptions: >
-          -auto-approve
-          -var="ssh_public_key=$(ssh_public_key)"
+        commandOptions: '-auto-approve'
 
     # -----------------------------
     # OUTPUTS
@@ -95,12 +97,3 @@ stages:
         provider: 'azurerm'
         command: 'output'
         workingDirectory: 'infra-epicbook'
-
-    - script: |
-        terraform output -json > tfoutputs.json
-      workingDirectory: infra-epicbook
-      displayName: "Export Terraform Outputs"
-
-    - publish: infra-epicbook/tfoutputs.json
-      artifact: tfoutputs
-      displayName: "Publish Outputs"

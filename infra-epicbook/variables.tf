@@ -32,6 +32,7 @@ variable "ssh_public_key" {
   type        = string
 }
 
+
 variable "vm_size" {
   type    = string
   default = "Standard_B2s_v2"
