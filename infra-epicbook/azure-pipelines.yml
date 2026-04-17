@@ -55,7 +55,7 @@ stages:
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
-          -var="ssh_public_key=$(ssh_public_key)"
+          -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
@@ -66,7 +66,7 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
           -auto-approve
-          -var="ssh_public_key=$(ssh_public_key)"
+          -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Output"
