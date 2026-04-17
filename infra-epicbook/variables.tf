@@ -48,7 +48,8 @@ validation {
 }
 
 variable "location" {
-  type = string
+  type    = string
+  default = "westeurope"
 
   validation {
     condition = contains([
