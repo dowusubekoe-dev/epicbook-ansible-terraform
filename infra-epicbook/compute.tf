@@ -24,7 +24,7 @@ resource "azurerm_linux_virtual_machine" "app_vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "24_04-lts"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -55,7 +55,7 @@ resource "azurerm_linux_virtual_machine" "db_vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "24_04-lts"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
