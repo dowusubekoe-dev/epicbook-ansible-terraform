@@ -88,6 +88,7 @@ stages:
     # ----------------------------
     - script: |
         terraform apply -auto-approve -var-file=pipeline.tfvars
+      condition: succeeded() # Run even if plan fails, to allow manual approval
 
       workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
       displayName: "Terraform Apply"
