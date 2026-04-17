@@ -67,9 +67,20 @@ stages:
     # 3. TERRAFORM PLAN
     # ----------------------------
     - script: |
+        set -e
         terraform plan -var-file=pipeline.tfvars -detailed-exitcode
-
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -eq 1 ]; then
+          echo "Terraform plan failed"
+          exit 1
+        elif [ $EXIT_CODE -eq 2 ]; then
+          echo "Terraform plan succeeded with changes"
+          exit 0
+        else
+          echo "Terraform plan succeeded with no changes"
+        exit 0
+        fi
+      workingDirectory: $(TF_DIR)
       displayName: "Terraform Plan"
 
     # ----------------------------
