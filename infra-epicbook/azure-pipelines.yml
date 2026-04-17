@@ -2,99 +2,75 @@ trigger:
 - main
 
 pool:
-  name: epicbook-deploy-agent
+  name: Pool Agent VM
 
 variables:
-- group: epicbook-secrets
-- name: TF_IN_AUTOMATION
-  value: true
+  TF_IN_AUTOMATION: true
 
 stages:
-
-- stage: TerraformDeploy
-  displayName: "Terraform Deploy"
-
+- stage: Terraform_Infrastructure
+  displayName: "Terraform Infra Deployment"
   jobs:
-  - job: terraform
-    displayName: "Terraform Job"
-
+  - job: TerraformJob
+    displayName: "Provision Azure Infrastructure"
     steps:
 
     # -----------------------------
-    # DOWNLOAD SSH KEY
+    # 1. Terraform Install (assumes already installed on agent OR add installer task if needed)
     # -----------------------------
-    - task: DownloadSecureFile@1
-      name: sshkey
-      inputs:
-        secureFile: 'azure_vm_key.pub'
-      displayName: "Download SSH Public Key"
+    - script: |
+        echo "Checking Terraform version..."
+        terraform version
+      displayName: "Terraform Version Check"
 
     # -----------------------------
-    # NORMALIZE SSH KEY (IMPORTANT FIX)
+    # 2. Init Terraform Backend
     # -----------------------------
-    - bash: |
-        KEY=$(tr -d '\r' < "$(sshkey.secureFilePath)")
-        echo "##vso[task.setvariable variable=TF_VAR_ssh_public_key]$KEY"
-      displayName: "Load SSH Key Safely"
-
-    # -----------------------------
-    # INIT
-    # -----------------------------
-    - task: TerraformTaskV4@4
+    - script: |
+        echo "Initializing Terraform backend..."
+        terraform init -reconfigure
       displayName: "Terraform Init"
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: 'infra-epicbook'
-        backendServiceArm: 'epicbook-devops-sb'
-        backendAzureRmResourceGroupName: 'tfstate-rg'
-        backendAzureRmStorageAccountName: 'tfstatedobepicbook'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'epicbook.tfstate'
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra
 
     # -----------------------------
-    # VALIDATE
+    # 3. Validate Terraform Code
     # -----------------------------
-    - task: TerraformTaskV4@4
+    - script: |
+        echo "Validating Terraform configuration..."
+        terraform validate
       displayName: "Terraform Validate"
-      inputs:
-        provider: 'azurerm'
-        command: 'validate'
-        workingDirectory: 'infra-epicbook'
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra
 
     # -----------------------------
-    # PLAN (NOW PICKS UP TF_VAR AUTOMATICALLY)
+    # 4. Show tfvars (debug safety check)
     # -----------------------------
-    - task: TerraformTaskV4@4
+    - script: |
+        echo "Checking tfvars file..."
+        cat pipeline.tfvars || echo "pipeline.tfvars NOT FOUND"
+      displayName: "Verify tfvars File"
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra
+
+    # -----------------------------
+    # 5. Terraform Plan
+    # -----------------------------
+    - script: |
+        echo "Running Terraform Plan..."
+
+        terraform plan \
+          -var-file=pipeline.tfvars \
+          -detailed-exitcode
+
       displayName: "Terraform Plan"
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: 'infra-epicbook'
-        environmentServiceNameAzureRM: 'epicbook-devops-sb'
-        commandOptions: >
-          -var="ssh_public_key_path=$(sshkey.secureFilePath)"
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra
+      continueOnError: false
 
     # -----------------------------
-    # APPLY
+    # 6. Terraform Apply (only if approved or CI policy allows)
     # -----------------------------
-    - task: TerraformTaskV4@4
+    - script: |
+        echo "Applying Terraform changes..."
+        terraform apply -auto-approve \
+          -var-file=pipeline.tfvars
+
       displayName: "Terraform Apply"
-      inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        workingDirectory: 'infra-epicbook'
-        environmentServiceNameAzureRM: 'epicbook-devops-sb'
-        commandOptions: >
-          -auto-approve
-          -var="ssh_public_key_path=$(sshkey.secureFilePath)"
-
-    # -----------------------------
-    # OUTPUTS
-    # -----------------------------
-    - task: TerraformTaskV4@4
-      displayName: "Terraform Output"
-      inputs:
-        provider: 'azurerm'
-        command: 'output'
-        workingDirectory: 'infra-epicbook'
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra
