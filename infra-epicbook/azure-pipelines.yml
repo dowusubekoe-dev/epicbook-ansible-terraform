@@ -28,11 +28,18 @@ stages:
     # ----------------------------
     # 1. GENERATE TFVARS
     # ----------------------------
+
+    - task: DownloadSecureFile@1
+      name: sshkey
+      displayName: "Download SSH Public Key"
+      inputs:
+        secureFile: azure_vm_key.pub
+
     - script: |
         set -e
         KEY_PATH="$(sshkey.secureFilePath)"
         echo "Using key file: $KEY_PATH"
-        if [ ! -s "$KEY_PATH" ]; then
+        if [ ! -f "$KEY_PATH" ]; then
           echo "ERROR: SSH key file is missing or empty"
         exit 1
         fi
