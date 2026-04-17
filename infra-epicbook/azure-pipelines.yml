@@ -56,8 +56,8 @@ stages:
 
     # Normalize SSH key into pipeline variable
     - script: |
-        SSH_KEY=$(cat $(sshkey.secureFilePath))
-        echo "##vso[task.setvariable variable=ssh_public_key]$SSH_KEY"
+        export TF_VAR_ssh_public_key="$(cat $(sshkey.secureFilePath))"
+        terraform plan
 
     # -----------------------------
     # PLAN
