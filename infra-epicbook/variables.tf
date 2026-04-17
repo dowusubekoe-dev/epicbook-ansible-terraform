@@ -7,7 +7,7 @@ variable "location" {
 variable "vm_size" {
   description = "SKU of VM"
   type = string
-  default = "Standard_D2ads_v7"
+  default = "Standard_D2s_v5"
 }
 
 variable "rg_name" {

@@ -20,6 +20,9 @@ stages:
 
     steps:
 
+    # -----------------------------
+    # INIT
+    # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
       inputs:
@@ -32,6 +35,9 @@ stages:
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: 'epicbook.tfstate'
 
+    # -----------------------------
+    # VALIDATE
+    # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Validate"
       inputs:
@@ -39,14 +45,24 @@ stages:
         command: 'validate'
         workingDirectory: 'infra-epicbook'
 
-    # DEBUG (REMOVE LATER)
-    - script: |
-        echo "SSH KEY LENGTH:"
-        echo "$(ssh_public_key)" | wc -c
-        echo "FIRST 30 CHARS:"
-        echo "$(ssh_public_key)" | cut -c1-30
-      displayName: "Debug SSH Key"
+    # -----------------------------
+    # LOAD SSH KEY (SECURE FILE)
+    # -----------------------------
+    - task: DownloadSecureFile@1
+      name: sshkey
+      inputs:
+        secureFile: 'azure_vm_key.pub'
+      displayName: "Download SSH Public Key"
 
+    # Normalize SSH key into pipeline variable
+    - bash: |
+        KEY=$(cat $(sshkey.secureFilePath) | tr -d '\r' | tr -d '\n')
+        echo "##vso[task.setvariable variable=ssh_public_key]$KEY"
+      displayName: "Load SSH Key into Variable"
+
+    # -----------------------------
+    # PLAN
+    # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
       inputs:
@@ -55,8 +71,11 @@ stages:
         workingDirectory: 'infra-epicbook'
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
-          -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
+          -var="ssh_public_key=$(ssh_public_key)"
 
+    # -----------------------------
+    # APPLY
+    # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
       inputs:
@@ -66,8 +85,11 @@ stages:
         environmentServiceNameAzureRM: 'epicbook-devops-sb'
         commandOptions: >
           -auto-approve
-          -var="ssh_public_key=$(cat $(sshkey.secureFilePath))"
+          -var="ssh_public_key=$(ssh_public_key)"
 
+    # -----------------------------
+    # OUTPUTS
+    # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Output"
       inputs:
@@ -82,4 +104,4 @@ stages:
 
     - publish: infra-epicbook/tfoutputs.json
       artifact: tfoutputs
-      displayName: "Publish Terraform Outputs"
+      displayName: "Publish Outputs"
