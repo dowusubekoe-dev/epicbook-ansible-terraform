@@ -30,15 +30,12 @@ stages:
       displayName: "Download SSH Public Key"
 
     # -----------------------------
-    # EXPORT VARIABLES (CRITICAL)
+    # NORMALIZE SSH KEY (IMPORTANT FIX)
     # -----------------------------
-    - task: Bash@3
-      displayName: "Set Terraform Variables"
-      inputs:
-        targetType: inline
-        script: |
-          echo "##vso[task.setvariable variable=TF_VAR_ssh_public_key]$(cat $(sshkey.secureFilePath))"
-          echo "##vso[task.setvariable variable=TF_VAR_location]westeurope"
+    - bash: |
+        KEY=$(tr -d '\r' < "$(sshkey.secureFilePath)")
+        echo "##vso[task.setvariable variable=TF_VAR_ssh_public_key]$KEY"
+      displayName: "Load SSH Key Safely"
 
     # -----------------------------
     # INIT
@@ -66,7 +63,7 @@ stages:
         workingDirectory: 'infra-epicbook'
 
     # -----------------------------
-    # PLAN
+    # PLAN (NOW PICKS UP TF_VAR AUTOMATICALLY)
     # -----------------------------
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
