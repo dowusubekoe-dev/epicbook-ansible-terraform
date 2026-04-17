@@ -4,12 +4,6 @@ variable "location" {
   default     = "australiacentral"
 }
 
-variable "vm_size" {
-  description = "SKU of VM"
-  type = string
-  default = "Standard_B2s_v2"
-}
-
 variable "rg_name" {
   description = "Resource group name"
   type        = string
