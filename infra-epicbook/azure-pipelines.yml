@@ -7,75 +7,60 @@ pool:
 variables:
   TF_IN_AUTOMATION: true
 
+
 stages:
-- stage: Terraform_Infrastructure
-  displayName: "Terraform Infra Deployment"
+- stage: Infra
+  displayName: "Terraform Infrastructure"
   jobs:
   - job: TerraformJob
-    displayName: "Provision Azure Infrastructure"
+    displayName: "Provision Azure Resources"
     steps:
 
-    # -----------------------------
-    # 1. Terraform Install (assumes already installed on agent OR add installer task if needed)
-    # -----------------------------
+    # ----------------------------
+    # SET WORKING DIRECTORY ONCE
+    # ----------------------------
     - script: |
-        echo "Checking Terraform version..."
-        terraform version
-      displayName: "Terraform Version Check"
+        echo "Terraform directory:"
+        ls -la
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
+      displayName: "Debug Directory"
 
-    # -----------------------------
-    # 2. Init Terraform Backend
-    # -----------------------------
+    # ----------------------------
+    # 1. GENERATE TFVARS
+    # ----------------------------
     - script: |
-        echo "Initializing Terraform backend..."
+        SSH_KEY=$(cat $(sshkey.secureFilePath))
+
+        printf 'ssh_public_key="%s"\n' "$SSH_KEY" > pipeline.tfvars
+
+        cat pipeline.tfvars
+
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
+      displayName: "Generate tfvars"
+
+    # ----------------------------
+    # 2. TERRAFORM INIT
+    # ----------------------------
+    - script: |
         terraform init -reconfigure
-      displayName: "Terraform Init"
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
 
-    - script: |
-        terraform init -reconfigure
       workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
       displayName: "Terraform Init"
 
-    # -----------------------------
-    # 3. Validate Terraform Code
-    # -----------------------------
+    # ----------------------------
+    # 3. TERRAFORM PLAN
+    # ----------------------------
     - script: |
-        echo "Validating Terraform configuration..."
-        terraform validate
-      displayName: "Terraform Validate"
+        terraform plan -var-file=pipeline.tfvars -detailed-exitcode
+
       workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
-
-    # -----------------------------
-    # 4. Show tfvars (debug safety check)
-    # -----------------------------
-    - script: |
-        echo "Checking tfvars file..."
-        cat pipeline.tfvars || echo "pipeline.tfvars NOT FOUND"
-      displayName: "Verify tfvars File"
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
-
-    # -----------------------------
-    # 5. Terraform Plan
-    # -----------------------------
-    - script: |
-        echo "Running Terraform Plan..."
-
-        terraform plan \
-          -var-file=pipeline.tfvars \
-          -detailed-exitcode
-
       displayName: "Terraform Plan"
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
-      continueOnError: false
 
-    # -----------------------------
-    # 6. Terraform Apply (only if approved or CI policy allows)
-    # -----------------------------
+    # ----------------------------
+    # 4. TERRAFORM APPLY (optional stage gating recommended)
+    # ----------------------------
     - script: |
-        echo "Applying Terraform changes..."
-        terraform apply -auto-approve \
-          -var-file=pipeline.tfvars
+        terraform apply -auto-approve -var-file=pipeline.tfvars
 
-      displayName: "Terraform Apply"
       workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
+      displayName: "Terraform Apply"
