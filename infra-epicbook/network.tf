@@ -17,6 +17,30 @@ resource "azurerm_subnet" "db_subnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "mysql-delegation"
+
+    service_delegation {
+      name = "Microsoft.DBforMySQL/flexibleServers"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
+}
+
+resource "azurerm_private_dns_zone" "mysql_dns" {
+  name                = "privatelink.mysql.database.azure.com"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "mysql_dns_link" {
+  name                  = "mysql-dns-link"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.mysql_dns.name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
 }
 
 resource "azurerm_network_interface" "app_nic" {
@@ -29,18 +53,6 @@ resource "azurerm_network_interface" "app_nic" {
     subnet_id                     = azurerm_subnet.app_subnet.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.app.id
-  }
-}
-
-resource "azurerm_network_interface" "db_nic" {
-  name                = "db-nic"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.db_subnet.id
-    private_ip_address_allocation = "Dynamic"
   }
 }
 

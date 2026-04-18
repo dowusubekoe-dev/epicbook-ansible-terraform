@@ -28,10 +28,17 @@ variable "admin_username" {
   default     = "azureuser"
 }
 
-variable "ssh_public_key" {
-  type        = string
+variable "db_admin_password" {
+  sensitive = true
 }
 
+variable "ssh_public_key" {
+  type = string
+}
+
+variable "resource_prefix" {
+  description = "Prefix for all resources"
+}
 
 variable "vm_size" {
   type    = string
