@@ -40,7 +40,7 @@ variable "db_admin_user" {
 
 variable "db_admin_password" {
   description = "Admin password for MySQL"
-  sensitive = true
+  sensitive   = true
 }
 
 variable "ssh_public_key" {
