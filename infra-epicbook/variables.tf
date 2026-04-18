@@ -28,7 +28,18 @@ variable "admin_username" {
   default     = "azureuser"
 }
 
+variable "db_name" {
+  description = "Database name"
+}
+
+variable "db_admin_user" {
+  description = "Admin username for MySQL"
+  type        = string
+  default     = "azuredbadmin"
+}
+
 variable "db_admin_password" {
+  description = "Admin password for MySQL"
   sensitive = true
 }
 
