@@ -1,3 +1,0 @@
-- name: restart app
-  shell: |
-    pm2 restart epicbook
