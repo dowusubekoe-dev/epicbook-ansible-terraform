@@ -6,89 +6,106 @@ pool:
 
 variables:
   TF_IN_AUTOMATION: true
-
+  TF_DIR: 'infra-epicbook'
+  TF_WORKING_DIR: '$(System.DefaultWorkingDirectory)/infra-epicbook'
 
 stages:
+
+# ==================================================
+# INFRASTRUCTURE STAGE (TERRAFORM)
+# ==================================================
 - stage: Infra
   displayName: "Terraform Infrastructure"
   jobs:
+
   - job: TerraformJob
     displayName: "Provision Azure Resources"
     steps:
 
     # ----------------------------
-    # SET WORKING DIRECTORY ONCE
+    # DEBUG WORKSPACE
     # ----------------------------
     - script: |
-        echo "Terraform directory:"
-        ls -la
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
-      displayName: "Debug Directory"
+        echo "Current workspace:"
+        pwd
+        echo "Listing repo structure:"
+        ls -R $(System.DefaultWorkingDirectory)
+      displayName: "Debug Workspace"
 
     # ----------------------------
-    # 1. GENERATE TFVARS
+    # DOWNLOAD SSH KEY
     # ----------------------------
-
     - task: DownloadSecureFile@1
       name: sshkey
       displayName: "Download SSH Public Key"
       inputs:
         secureFile: azure_vm_key.pub
 
+    # ----------------------------
+    # GENERATE TFVARS
+    # ----------------------------
     - script: |
         set -e
+
         KEY_PATH="$(sshkey.secureFilePath)"
         echo "Using key file: $KEY_PATH"
+
         if [ ! -f "$KEY_PATH" ]; then
-          echo "ERROR: SSH key file is missing or empty"
-        exit 1
+          echo "ERROR: SSH key file missing"
+          exit 1
         fi
+
         SSH_KEY=$(cat "$KEY_PATH")
+
         if [ -z "$SSH_KEY" ]; then
           echo "ERROR: SSH key is empty"
           exit 1
         fi
+
         printf 'ssh_public_key="%s"\n' "$SSH_KEY" > pipeline.tfvars
+
         echo "Generated tfvars:"
         cat pipeline.tfvars
+      workingDirectory: $(TF_WORKING_DIR)
       displayName: "Generate tfvars"
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
 
     # ----------------------------
-    # 2. TERRAFORM INIT
-    # ----------------------------
-    - script: |
-        terraform init -reconfigure
-
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
-      displayName: "Terraform Init"
-
-    # ----------------------------
-    # 3. TERRAFORM PLAN
+    # TERRAFORM INIT
     # ----------------------------
     - script: |
         set -e
-        terraform plan -var-file=pipeline.tfvars -detailed-exitcode
+        terraform init -reconfigure
+      workingDirectory: $(TF_WORKING_DIR)
+      displayName: "Terraform Init"
+
+    # ----------------------------
+    # TERRAFORM PLAN
+    # ----------------------------
+    - script: |
+        set +e
+        terraform plan \
+          -var-file=pipeline.tfvars \
+          -detailed-exitcode
         EXIT_CODE=$?
+        echo "Terraform exit code: $EXIT_CODE"
         if [ $EXIT_CODE -eq 1 ]; then
-          echo "Terraform plan failed"
+          echo "❌ Terraform PLAN failed"
           exit 1
-        elif [ $EXIT_CODE -eq 2 ]; then
-          echo "Terraform plan succeeded with changes"
-          exit 0
-        else
-          echo "Terraform plan succeeded with no changes"
-        exit 0
         fi
-      workingDirectory: $(TF_DIR)
+        if [ $EXIT_CODE -eq 2 ]; then
+          echo "✔ Terraform PLAN succeeded with changes"
+          exit 0
+        fi
+        echo "✔ Terraform PLAN succeeded with no changes"
+        exit 0
+      workingDirectory: $(TF_WORKING_DIR)
       displayName: "Terraform Plan"
 
     # ----------------------------
-    # 4. TERRAFORM APPLY (optional stage gating recommended)
+    # TERRAFORM APPLY
     # ----------------------------
     - script: |
+        set -e
         terraform apply -auto-approve -var-file=pipeline.tfvars
-      condition: succeeded() # Run even if plan fails, to allow manual approval
-
-      workingDirectory: $(System.DefaultWorkingDirectory)/infra-epicbook
+      workingDirectory: $(TF_WORKING_DIR)
       displayName: "Terraform Apply"
